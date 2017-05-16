@@ -29,7 +29,7 @@ The Raspberry Pi or Linux machine must have a bluetooth adapater. To check the c
 sudo apt-get update
 sudo apt-get install bluez
 hcitool dev .... list local devices
-hcitool info C4:D9:87:8F:3B:43  ... to get more injformation on device C4:D9:87:8F:3B:43
+hcitool info C4:D9:87:8F:3B:43  ... to get more information on device C4:D9:87:8F:3B:43
 ```
 
 ## Building the Ardexa software
@@ -48,8 +48,8 @@ sudo make install  ... will install the `ardexa-sma-bt` binary in /usr/local/bin
 ```
 
 ## Collecting to the Ardexa cloud
-Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:
-a. Create a `RUN` scenario to schedule the Ardexa SMA Bluetooth program to run at regular intervals (say every 180 seconds/3 minutes).
+Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:    
+a. Create a `RUN` scenario to schedule the Ardexa SMA Bluetooth program to run at regular intervals (say every 180 seconds/3 minutes).    
 b. Then use a `CAPTURE` scenario to collect the csv (comma separated) data from the directory `/opt/ardexa/sma-bt/logs/{inverter-name}/latest.csv`. This file contains a header entry (as the first line) that describes the CSV elements of the file.
 
 ## Help
