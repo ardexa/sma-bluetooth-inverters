@@ -100,6 +100,10 @@ int main(int argc, char **argv) {
         cout << line << endl;
     }
 
+    if (line.length() == 0) {
+        cout << "ERROR: invalid read" << endl;
+        exit(1);
+    }
 
     string filename = get_current_date() + ".csv";
     /* Log the line based on the inverter serial number, in the logging directory */
