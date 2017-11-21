@@ -53,76 +53,71 @@ int main(int argc, char **argv) {
 		return 2;
 	}
 
-	/* This class object defines the initial configuration parameters */     
-	arguments arguments_list;     
-	result = arguments_list.initialize(argc, argv);     
-	if (result != 0) {         
-		cerr << "Incorrect arguments" << endl;         
-		return 3;     
-	}     
+	/* This class object defines the initial configuration parameters */
+	arguments arguments_list;
+	result = arguments_list.initialize(argc, argv);
+	if (result != 0) {
+		cerr << "Incorrect arguments" << endl;
+		return 3;
+	}
 
-	/* set the global debug value. this won't change during runtime */     
+	/* set the global debug value. this won't change during runtime */
 	g_debug = arguments_list.get_debug();
 
 	/* start the timer */
 	time_t start = time(nullptr);
 
-	/* If this is a discovery run, then print all SMA BT available devices and exit. Do NOT try and read from the devices, since some of them 
+	/* If this is a discovery run, then print all SMA BT available devices and exit. Do NOT try and read from the devices, since some of them
       may not be SMA products */
 	if (arguments_list.get_discovery()) {
 		cout << "This is a discovery run to find all local Bluetooth devices, whether they are SMA or not." << endl;
-		get_bt_name("", &device_name);  
-		time_t endi = time(nullptr);  
-		cout << "Query took: " << (endi-start) << " Seconds\n" << endl;  
-		return 0; 
+		get_bt_name("", &device_name);
+		time_t endi = time(nullptr);
+		cout << "Query took: " << (endi-start) << " Seconds\n" << endl;
+		return 0;
 	}
 
 
-	/* this for loop will iterate through each address in the vector of BT addresses */
-	for(unsigned int i = 0; i <= arguments_list.addresses.size() - 1; i++) {
-		string line, header;
-		vector <vec_data> data_vector;
+    string line, header;
+    vector <vec_data> data_vector;
 
-		if (g_debug >= 1) cout << "\nProcessing BT address: " << arguments_list.addresses[i] << endl;
-		/* Get the address of the devices were are interested in */
-		get_bt_name(arguments_list.addresses[i], &device_name);
+    if (g_debug >= 1) cout << "\nProcessing BT address: " << arguments_list.address << endl;
+    /* Get the address of the devices were are interested in */
+    get_bt_name(arguments_list.address, &device_name);
 
-		/* Get the serial number out of the device name */
-		serial_number = get_serial(device_name);
-		if (g_debug >= 1) cout << "Serial number: " << serial_number << endl;
+    /* Get the serial number out of the device name */
+    serial_number = get_serial(device_name);
+    if (g_debug >= 1) cout << "Serial number: " << serial_number << endl;
 
 
-		/* Inizialize Bluetooth Inverter */
-		struct bluetooth_inverter inv = { { 0 } };
-		strcpy(inv.macaddr, arguments_list.addresses[i].c_str());   /// Change to strncpy
-		memcpy(inv.password, "0000", 5);
-		in_bluetooth_connect(&inv);
-		in_smadata2plus_connect(&inv);
-		in_smadata2plus_login(&inv);
-		in_smadata2plus_get_values(&inv, data_vector);
-		close(inv.socket_fd);
+    /* Inizialize Bluetooth Inverter */
+    struct bluetooth_inverter inv = { { 0 } };
+    strcpy(inv.macaddr, arguments_list.address.c_str());   /// Change to strncpy
+    memcpy(inv.password, "0000", 5);
+    in_bluetooth_connect(&inv);
+    in_smadata2plus_connect(&inv);
+    in_smadata2plus_login(&inv);
+    in_smadata2plus_get_values(&inv, data_vector);
+    close(inv.socket_fd);
 
-		process_data(data_vector, g_debug, line, header);
-		if (g_debug >= 1) {
-			cout << header << endl;
-			cout << line << endl;
-		}		
-		
-
-		string filename = get_current_date() + ".csv";
-		/* Log the line based on the inverter serial number, in the logging directory */
-		string full_dir = arguments_list.get_log_directory() + "/" + serial_number;
-		/* log to a date and to a 'latest' file */
-		log_line(full_dir, filename, line, header, true);
-
-	}
+    process_data(data_vector, g_debug, line, header);
+    if (g_debug >= 1) {
+        cout << header << endl;
+        cout << line << endl;
+    }
 
 
-	/* stop the timer */
-	time_t end = time(nullptr);
-	if (g_debug > 0) cout << "Query took: " << (end-start) << " Seconds\n" << endl;
-	/* remove the PID file */
-	remove_pid_file();
+    string filename = get_current_date() + ".csv";
+    /* Log the line based on the inverter serial number, in the logging directory */
+    string full_dir = arguments_list.get_log_directory() + "/" + serial_number;
+    /* log to a date and to a 'latest' file */
+    log_line(full_dir, filename, line, header, true);
+
+    /* stop the timer */
+    time_t end = time(nullptr);
+    if (g_debug > 0) cout << "Query took: " << (end-start) << " Seconds\n" << endl;
+    /* remove the PID file */
+    remove_pid_file();
 
    return 0;
 }

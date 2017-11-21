@@ -19,7 +19,6 @@ using namespace std;
 
 #define DEFAULT_DEBUG_VALUE 0
 #define DEFAULT_LOG_DIRECTORY "/opt/ardexa/sma-bt/logs"
-#define DEFAULT_CONF_DIRECTORY "/home/ardexa"
 #define VERSION 1.19
 #define PASSWORD "0000"
 
@@ -35,26 +34,23 @@ class arguments
 		void usage();
 		int get_debug();
 		bool get_discovery();
-		string get_config_file();
 		string get_log_directory();
 		int get_number();
-		bool read_addresses();
 		string get_password();
 
 		/* variables */
 		map <string, string> convert;
-		vector <string> addresses;
+		string address;
 
 
 	private:
 		/* members are private */
 		int debug;
-		string conf_filepath;
 		string log_directory;
 		bool discovery; /* this is to simple list the available devices and exit */
 		string usage_string;
 		int number;
 		string password;
-};	
+};
 
 #endif /* ARGUMENTS_HPP_INCLUDED */
