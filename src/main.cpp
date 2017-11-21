@@ -42,12 +42,6 @@ int main(int argc, char **argv) {
     int result;
     string device_name = "", serial_number = "";
 
-    /* If not run as root, exit */
-    if (check_root() == false) {
-        cout << "This program must be run as root" << endl;
-        return 1;
-    }
-
     /* Check for existence of PID file */
     if (!check_pid_file()) {
         return 2;
