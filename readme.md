@@ -8,6 +8,7 @@ This application is written in C++. It is based on the work of these people and 
 a. https://github.com/sbf-/SBFspot
 b.	https://github.com/sma-bluetooth/sma-bluetooth
 c.	http://blog.jamesball.co.uk/2013/02/understanding-sma-bluetooth-protocol-in.html
+d.	https://github.com/simonswine/opensunny
 
 This application will query any number of connected SMA bluetooth inverters. Data will be written to log files on disk in a directory specified via the command line. Usage and command line parameters are as follows.
 
@@ -25,10 +26,13 @@ The `-c` option is a file that contains a list of all the SMA bluetooth devices 
 
 ## Bluetooth Adapter
 The Raspberry Pi or Linux machine must have a bluetooth adapater. To check the correct functioning of the adapter, install the `bluez` package, as follows:
+- see this as a reference: https://www.pcsuggest.com/linux-bluetooth-setup-hcitool-bluez/
 ```
 sudo apt-get update
-sudo apt-get install bluez
-hcitool dev .... list local devices
+sudo apt-get install -y bluetooth bluez bluez-tools rfkill
+hcitool dev .... list local devices (ie; dongles connected to the local computer)
+sudo hciconfig hci0 up
+hcitool scan
 hcitool info C4:D9:87:8F:3B:43  ... to get more information on device C4:D9:87:8F:3B:43
 ```
 

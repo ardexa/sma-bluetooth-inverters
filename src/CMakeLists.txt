@@ -26,14 +26,14 @@ PROJECT( ardexa-sma-bt)
 set(CMAKE_BINARY_DIR .)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s")
+set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES /usr/local/lib ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
+set(CMAKE_CXX_FLAGS "-Wall -fexceptions --std=c++11")
+
 # Source files
-set(ARDEXA_SMA_BT_SRC   src/main.cpp src/arguments.cpp src/utils.cpp)
+set(ARDEXA_SMA_BT_SRC   main.cpp arguments.cpp utils.cpp in_bluetooth.c in_smadata2plus.c)
 set_source_files_properties(${ARDEXA_SMA_BT_SRC} PROPERTIES LANGUAGE CXX )
 
-if(UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++0x -fmessage-length=0")
-	set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wall -fmessage-length=0 ")
-endif()
 
 # Build the application
 add_executable(ardexa-sma-bt       ${ARDEXA_SMA_BT_SRC})
