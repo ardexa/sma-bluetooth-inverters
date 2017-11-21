@@ -76,7 +76,8 @@ int in_bluetooth_connect_read(struct bluetooth_inverter * inv) {
     int count, result;
     fd_set readset;
     struct timeval timeout;
-    timeout.tv_sec = 5;
+    int maxWait = 2;
+    timeout.tv_sec = maxWait;
     timeout.tv_usec = 0;
 
     do {
@@ -104,7 +105,7 @@ int in_bluetooth_connect_read(struct bluetooth_inverter * inv) {
         /* An error ocurred, just print it to stdout */
         printf("Error on select(): %s\n", strerror(errno));
     } else {
-        printf("No data within 5 seconds\n");
+        printf("No data within %d seconds\n", maxWait);
         exit(1);
     }
     return -1;
