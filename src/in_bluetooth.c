@@ -72,21 +72,42 @@ int in_bluetooth_write(struct bluetooth_inverter * inv, unsigned char * buffer,
 
 int in_bluetooth_connect_read(struct bluetooth_inverter * inv) {
 
-	char buffer_hex[BUFSIZ * 3];
-	int count;
+    char buffer_hex[BUFSIZ * 3];
+    int count, result;
+    fd_set readset;
+    struct timeval timeout;
+    timeout.tv_sec = 5;
+    timeout.tv_usec = 0;
 
-	count = read(inv->socket_fd, inv->buffer, BUFSIZ);
+    do {
+        FD_ZERO(&readset);
+        FD_SET(inv->socket_fd, &readset);
+        result = select(inv->socket_fd + 1, &readset, NULL, NULL, &timeout);
+    } while (result == -1 && errno == EINTR);
 
-	if (count > 0) {
-		buffer_hex_dump(buffer_hex, inv->buffer, count);
-		/////////////////////printf("[BT] Received %d bytes: %s\n", count, buffer_hex);
-	}
+    if (result > 0) {
+        if (FD_ISSET(inv->socket_fd, &readset)) {
+            /* The socket_fd has data available to be read */
+            count = read(inv->socket_fd, inv->buffer, BUFSIZ);
+            if (count > 0) {
+                buffer_hex_dump(buffer_hex, inv->buffer, count);
+                /////////////////////printf("[BT] Received %d bytes: %s\n", count, buffer_hex);
+            }
 
-	inv->buffer_len = count;
-	inv->buffer_position = 0;
+            inv->buffer_len = count;
+            inv->buffer_position = 0;
 
-	return count;
-
+            return count;
+        }
+    }
+    else if (result < 0) {
+        /* An error ocurred, just print it to stdout */
+        printf("Error on select(): %s\n", strerror(errno));
+    } else {
+        printf("No data within 5 seconds\n");
+        exit(1);
+    }
+    return -1;
 }
 
 /* Get my mac address */
@@ -100,9 +121,6 @@ void in_bluetooth_get_my_address(struct bluetooth_inverter * inv,
 
 	getsockname(inv->socket_fd,(struct sockaddr *) &mymac, &mymac_size);
 
-
-
-
 	/* Copy to Buffer */
 	memcpy(addr, &mymac.rc_bdaddr, 6);
 
@@ -114,11 +132,6 @@ void in_bluetooth_get_my_address(struct bluetooth_inverter * inv,
 
 	buffer_hex_dump(buffer_hex, addr, 6);
 	///log_debug("[BT] My MAC: %s", buffer_hex);
-
-
-	
-
-
 }
 
 /* fetch one byte from stream */
