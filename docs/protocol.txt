@@ -1,0 +1,229 @@
+Notes on the protocol for Bluetooth enabled SMA inverters
+=========================================================
+
+There seem to be two "interesting" protocol layers in the SMA
+bluetooth protocol.  The "outer" protocol is a packet protocol over
+Bluetooth RFCOMM.  It seems mainly to deal with Bluetooth specific
+things - signal levels etc.
+
+Speculation:
+ - Used for communication between the bluetooth adapters, rather than
+   the equipment itself?
+ - e.g. SMA bluetooth repeaters would talk this protocol, then forward
+   the inner frames on to the actual equipment?
+
+Some of the outer protocol frame types encapsulate PPP frames.  All
+PPP frames observed are PPP protocol number 0x6560, which appears to
+be an SMA allocated ID for their control protocol.
+
+Speculation:
+ - Is PPP and the inner protocol used directly over serial when using
+   RS485 instead of Bluetooth connections?
+    - Allows for shared use of RS485 lines, maybe?
+
+Outer protocol
+==============
+
+Packet based protocol over RFCOMM channel 1 over Bluetooth.  The same
+packet format appears to be used in both directions.
+
+
+Packet header
+-------------
+
+Offset		Value
+---------------------
+0		0x7e
+1		length of packet (including header), max 0x70
+2		0x00
+3		check byte, XOR of bytes 0..2 inclusive
+4..9		"From" bluetooth address
+10..15		"To" bluetooth address
+16..17		Packet type (LE16)
+
+18..		Payload (format depends on packet type)
+
+
+The bluetooth addresses are encoded in the reverse order to how
+they're usually written.  So 00:01:02:03:04:05 would be sent over the
+"wire" as:
+	0x05 0x04 0x03 0x02 0x01 0x00
+
+For packets which don't relate to the inner protocol,
+00:00:00:00:00:00 seems to be used instead of the initiating host's
+MAC address.
+
+
+Packet type 0x01: PPP frame (last piece)
+----------------------------------------
+
+Offset		Value
+16		0x01
+17		0x00
+18..		PPP data
+
+The PPP data is raw as it would be transmitted over serial. i.e. it
+includes flag bytes (0x7e at start and end of each PPP packet), PPP
+escaping, and the PPP CRC16 checksum at end of each frame.
+
+Packet type 0x02: "Hello"
+-------------------------
+
+Upon connection, SMA device issues one of these ~once per second,
+until host replies with an identical (?) hello packet.
+
+Offset		Value
+---------------------
+16		0x02
+17		0x00
+18		0x00
+19		0x04
+20		0x70
+21		0x00
+22		0x01
+23		0x00
+24		0x00
+25		0x00
+26		0x00
+27		0x01		NetID???
+28		0x00
+29		0x00
+30		0x00 
+
+Packet type 0x03: GETVAR
+------------------------
+
+Causes device to issue a type 04 packet giving a variable value (?)
+
+Offset		Value
+---------------------
+16		0x03
+17		0x00
+18..19		variable ID (LE16)
+
+Packet type 0x04: VARIABLE
+--------------------------
+
+Offset		Value
+---------------------
+16		0x04
+17		0x00
+18..19		variable ID (LE16)
+20..		variable contents
+
+Variables:
+	Variable 0x00, 0x10, 0x11: Invalid
+		 Causes a type 07 error packet to be issued
+
+	Variable 0x05: Signal Level
+Offset		 Value
+----------------------
+18		0x05
+19		0x00
+20		0x00
+21		0x00
+22		signal level, out of 255
+23		0x00
+
+ID		Meaning		Length
+--------------------------------------
+0x05		signal level	4 bytes
+
+
+
+Packet type 0x05: Unknown
+-------------------------
+
+Packet type 0x07: Error
+-----------------------
+
+Packet type 0x08: PPP frame (not last piece)
+--------------------------------------------
+
+As type 0x01
+
+Packet type 0x0a: Unkown
+------------------------
+
+Packet type 0x0c: Unknown
+-------------------------
+
+
+Inner protocol (PPP protocol 0x6560)
+==============
+
+Offset		Value
+----------------------
+0		Length of packet, in 32-bit words, including (inner) header, but not ppp header??
+1		? A2
+2..7		to address
+8		? B1
+9		? B2
+10..15		from address
+16..17		??? C1,C2
+18..19		error code?
+20..21		packet count for multi packet response
+22..23		LE16, low 15 bits are tag value
+		MSB is "first packet" flag for multi packet response??
+24..25		Packet type
+		LSB is command/response flag
+26..27		Packet subtype
+28..31		Arg 1 (LE)
+32..35		Arg 2 (LE)
+
+
+Command: Total Yield
+--------------------
+
+COMMAND:
+	A2:		E0
+	B1,B2:		00 00
+	C1,C2:		00 00
+	Type:		0200
+	Subtype:	5400
+	Arg1:		0x00260100
+	Arg2:		0x002601ff
+
+RESPONSE:
+	PAYLOAD:
+		0..3	timestamp (LE)
+		4..7	total yield in Wh (LE)
+
+Command: Daily  Yield
+---------------------
+
+COMMAND:
+	A2:		A0
+	B1,B2:		00 00
+	C1,C2:		00 00
+	Type:		0200
+	Subtype:	5400
+	Arg1:		0x00262200
+	Arg2:		0x002622ff
+
+RESPONSE:
+	PAYLOAD:
+		0..3	timestamp (LE)
+		4..7	day's yield in Wh (LE)
+
+Command: Historic data (5 minute intervals)
+-------------------------------------------
+
+Command: Daily  Yield
+---------------------
+
+COMMAND:
+	A2:		E0
+	B1,B2:		00 00
+	C1,C2:		00 00
+	Type:		0200
+	Subtype:	7000
+	Arg1:		start time (unix date, LE)
+	Arg2:		end time (unix date, LE)
+
+RESPONSE:
+	PAYLOAD:
+		0..3	timestamp (unix date, LE)
+		4..7	total yield at that time in Wh (LE)
+		8..11	???
+		...	Pattern repeated
