@@ -1,4 +1,4 @@
-/* 
+/*
 * Copyright (c) 2013-2017 Ardexa Pty Ltd
 *
 * This code is licensed under GPL v3
@@ -18,7 +18,7 @@
 #include <fstream>
 #include <unistd.h>
 #include <signal.h>
-#include <algorithm>  
+#include <algorithm>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>

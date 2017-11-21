@@ -1,94 +1,96 @@
-/* 
-* Copyright (c) 2013-2017 Ardexa Pty Ltd
-*
-* This code is licensed under GPL v3
-*
-*/
+/*
+ * Copyright (c) 2013-2017 Ardexa Pty Ltd
+ *
+ * This code is licensed under GPL v3
+ *
+ */
 
 #include "utils.hpp"
 
-/* Open the file where the log entry will be written, and write the line to it 
-   When using this function, make sure 'line' and 'header' have a newline at end 
-   If the 'rotate' is true, it will move thew old file and file instead of appending 
-	If the 'log_to_latest' it will also log a line to 'latest.csv' in 'directory' 
-*/
+/* Open the file where the log entry will be written, and write the line to it
+   When using this function, make sure 'line' and 'header' have a newline at
+   end If the 'rotate' is true, it will move thew old file and file instead of
+   appending If the 'log_to_latest' it will also log a line to 'latest.csv' in
+   'directory'
+   */
 int log_line(string directory, string filename, string line, string header, bool log_to_latest)
 {
-	struct stat st_directory;
-	string fullpath;
-	bool write_header = false;
-	/* if the log directory does not exist, or the log file does not exist, then declare a 'rotation'.
-	   This is where the 'latest.csv' file is renamed and a new one created */
-	bool rotate = false;
+    struct stat st_directory;
+    string fullpath;
+    bool write_header = false;
+    /* if the log directory does not exist, or the log file does not exist, then declare a 'rotation'.
+       This is where the 'latest.csv' file is renamed and a new one created */
+    bool rotate = false;
 
-	/* Add an ending '/' to the directory path, if it doesn't exist */
-	if (*directory.rbegin() != '/') {
-		directory += "/";
-	}
+    /* Add an ending '/' to the directory path, if it doesn't exist */
+    if (*directory.rbegin() != '/') {
+        directory += "/";
+    }
 
-	/* Check and create the directory if necessary */
-	if (stat(directory.c_str(), &st_directory) == -1) {
-		if (g_debug > 0) cout << "Directory doesn't exist. Creating it: " << directory.c_str() << endl;
-		rotate = true;
-		bool result = create_directory(directory);
-		if (!result) {
-			return 2;
-		}
-	}
+    /* Check and create the directory if necessary */
+    if (stat(directory.c_str(), &st_directory) == -1) {
+        if (g_debug > 0) cout << "Directory doesn't exist. Creating it: " << directory.c_str() << endl;
+        rotate = true;
+        bool result = create_directory(directory);
+        if (!result) {
+            return 2;
+        }
+    }
 
-	fullpath = directory + filename;
-	if (g_debug > 1) cout << "Full filename: " << fullpath << endl;
+    fullpath = directory + filename;
+    if (g_debug > 1) cout << "Full filename: " << fullpath << endl;
 
-	/* Check the full path. If it doesn't exist, the header line will need to be written 
-		If the file DOES exist AND if a rotation is called, then rename it and annotate a header is required 
-      And the rotate will need to be set to true 
-   */
-	if (stat(fullpath.c_str(), &st_directory) == -1) {
-		if (g_debug > 1) cout << "Fullpath doesn't exist. Path: " << fullpath.c_str() << endl;
-		write_header = true;
-		rotate = true;
-	}
+    /* Check the full path. If it doesn't exist, the header line will need to
+     * be written If the file DOES exist AND if a rotation is called, then
+     * rename it and annotate a header is required And the rotate will need to
+     * be set to true
+     */
+    if (stat(fullpath.c_str(), &st_directory) == -1) {
+        if (g_debug > 1) cout << "Fullpath doesn't exist. Path: " << fullpath.c_str() << endl;
+        write_header = true;
+        rotate = true;
+    }
 
-	/* Open it for appending data only */
-	ofstream writer(fullpath.c_str(), ios::app);
-	if(!writer) {
-		if (g_debug > 0) cout << "Cannot open logging file: " << fullpath << endl;
-		return 2;
-	}
-	if (write_header) {
-		writer << header << endl;
-	}
+    /* Open it for appending data only */
+    ofstream writer(fullpath.c_str(), ios::app);
+    if(!writer) {
+        if (g_debug > 0) cout << "Cannot open logging file: " << fullpath << endl;
+        return 2;
+    }
+    if (write_header) {
+        writer << header << endl;
+    }
 
-	writer << line << endl;
- 	writer.close();
+    writer << line << endl;
+    writer.close();
 
-	write_header = false;
-	/* If 'log_to_latest' is set, then write the line to this file as well */
-	if (log_to_latest) {
-		/* if file exists and rotate is declared, rename it and create a new one */
-		fullpath = directory + "latest.csv";
-		if (rotate) {
-			string newpath = directory + "latest.csv.OLD";
-			rename(fullpath.c_str(), newpath.c_str());
-			write_header = true;
-		}
+    write_header = false;
+    /* If 'log_to_latest' is set, then write the line to this file as well */
+    if (log_to_latest) {
+        /* if file exists and rotate is declared, rename it and create a new one */
+        fullpath = directory + "latest.csv";
+        if (rotate) {
+            string newpath = directory + "latest.csv.OLD";
+            rename(fullpath.c_str(), newpath.c_str());
+            write_header = true;
+        }
 
-		/* Open it for appending data only */
-		ofstream latest(fullpath.c_str(), ios::app);
-		if(!latest) {
-			if (g_debug > 0) cout << "Cannot open logging file: " << fullpath << endl;
-			return 3;
-		}
-		if (write_header) {
-			latest << header << endl;
-		}
-		latest << line << endl;
+        /* Open it for appending data only */
+        ofstream latest(fullpath.c_str(), ios::app);
+        if(!latest) {
+            if (g_debug > 0) cout << "Cannot open logging file: " << fullpath << endl;
+            return 3;
+        }
+        if (write_header) {
+            latest << header << endl;
+        }
+        latest << line << endl;
 
-		/* close it */
-		latest.close();
-	}	
+        /* close it */
+        latest.close();
+    }
 
-	return 0;
+    return 0;
 }
 
 /* Returns the current date as a string in the format "2017-01-30" */
@@ -158,79 +160,79 @@ bool check_file(string file)
 /* Create a directory, including all parent paths if they don't exist */
 bool create_directory(string directory)
 {
-	string delimiter = "/";
-	size_t pos = 0, start = 0;
-	int count = 0;
-	string temp = "";
+    string delimiter = "/";
+    size_t pos = 0, start = 0;
+    int count = 0;
+    string temp = "";
 
-	/* Add a trailing '/' */
-	directory = directory + '/';
-	while ((pos = directory.find(delimiter, start)) != string::npos) {
-		if (count == 0) {
-			if (pos != 0) {
-				cout << "Directory needs to start with " << delimiter << endl;
-				return false;
-			}
-		}
-		else {
-			temp = directory.substr(0, pos); 
-			if (check_directory(temp)) {
-				if (g_debug > 1) cout << "The dir: " << temp << " exists." << endl;
+    /* Add a trailing '/' */
+    directory = directory + '/';
+    while ((pos = directory.find(delimiter, start)) != string::npos) {
+        if (count == 0) {
+            if (pos != 0) {
+                cout << "Directory needs to start with " << delimiter << endl;
+                return false;
+            }
+        }
+        else {
+            temp = directory.substr(0, pos);
+            if (check_directory(temp)) {
+                if (g_debug > 1) cout << "The dir: " << temp << " exists." << endl;
 
-			}
-			else {
-				if (g_debug > 0) cout << "Creating the dir: " << temp << endl;
-				if (mkdir(temp.c_str(), 0744) != 0) {
-					cout << "Could not create the directory: " << temp << endl;
-					return false;
-				}
-			}
-		}
-		count++;
-		/* start at one past the las pos */
-		start = pos + 1; 
-	} 
+            }
+            else {
+                if (g_debug > 0) cout << "Creating the dir: " << temp << endl;
+                if (mkdir(temp.c_str(), 0744) != 0) {
+                    cout << "Could not create the directory: " << temp << endl;
+                    return false;
+                }
+            }
+        }
+        count++;
+        /* start at one past the las pos */
+        start = pos + 1;
+    }
 
-	return true;
+    return true;
 }
 
 /* This function will convert a double number to a string */
 string convert_double(double number)
 {
-	char buffer[DOUBLE_SIZE] = "";
-	sprintf(buffer, "%.2f", number);
-	string converted(buffer);
-	/* remove last 3 characters if they exactly equal '.00' */
-	if (converted.compare(converted.size() - 3, 3,".00") == 0) {
-		converted.erase(converted.size() - 3, 3); 
-	}
-	return converted;
+    char buffer[DOUBLE_SIZE] = "";
+    sprintf(buffer, "%.2f", number);
+    string converted(buffer);
+    /* remove last 3 characters if they exactly equal '.00' */
+    if (converted.compare(converted.size() - 3, 3,".00") == 0) {
+        converted.erase(converted.size() - 3, 3);
+    }
+    return converted;
 
 }
 
 /* replace all spaces in a string with an underscore */
 string replace_spaces(string incoming)
 {
-	string outgoing = incoming;
-	/* find first space */
-	unsigned int position = outgoing.find(" "); 
+    string outgoing = incoming;
+    /* find first space */
+    unsigned int position = outgoing.find(" ");
 
-   while( position != string::npos )  {
-		outgoing.replace( position, 1, "_" );
-      position = outgoing.find(" ", position + 1 );
-   } 
-	return outgoing;
+    while( position != string::npos )  {
+        outgoing.replace( position, 1, "_" );
+        position = outgoing.find(" ", position + 1 );
+    }
+    return outgoing;
 }
 
 bool check_root()
 {
-	uid_t uid=getuid();
-	if (uid == 0) {
-		return true;
-	} 
-	else {
-		return false;
-	}
+    uid_t uid=getuid();
+    if (uid == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 /*  This function checks for the existence of a PID file. If one is
@@ -333,74 +335,72 @@ bool convert_long(string incoming, long *outgoing)
 /* Get the name of a bluetooth device. If bt_address is empty, print all available devices  */
 bool get_bt_name(string bt_address, string *name_str)
 {
-	inquiry_info *ii = NULL;
-	int max_rsp, num_rsp;
-	int dev_id, sock, len, flags;
-	char addr[NAME] = {0};
- 	char name[NAME] = {0};
-	bdaddr_t	dst_addr;
+    inquiry_info *ii = NULL;
+    int max_rsp, num_rsp;
+    int dev_id, sock, len, flags;
+    char addr[NAME] = {0};
+    char name[NAME] = {0};
+    bdaddr_t	dst_addr;
 
-	/* retrieve ID of BT adapter, and open the device */
-	dev_id = hci_get_route(NULL);
+    /* retrieve ID of BT adapter, and open the device */
+    dev_id = hci_get_route(NULL);
 
-	sock = hci_open_dev( dev_id );
-	if (dev_id < 0 || sock < 0) {
-		if (g_debug > 0) cout << "Could not find a bluetooth adapter " << endl;
-		return false;
-	}
+    sock = hci_open_dev( dev_id );
+    if (dev_id < 0 || sock < 0) {
+        if (g_debug > 0) cout << "Could not find a bluetooth adapter " << endl;
+        return false;
+    }
 
-	/* if bt_address is empty, search and print all devices */
-	if (bt_address.empty()) {
-		len  = 8;
-		max_rsp = NAME;
-		flags = IREQ_CACHE_FLUSH;
-		ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
-    
-		num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
-		if( num_rsp < 0 ) {
-			if (g_debug > 0) cout << "Could not find a bluetooth hosts on the network " << endl;
-			close( sock );
-			return false;
-		}
+    /* if bt_address is empty, search and print all devices */
+    if (bt_address.empty()) {
+        len  = 8;
+        max_rsp = NAME;
+        flags = IREQ_CACHE_FLUSH;
+        ii = (inquiry_info*)malloc(max_rsp * sizeof(inquiry_info));
 
-		for (int i = 0; i < num_rsp; i++) {
-			memset(addr, 0, sizeof(addr));
-			ba2str(&(ii+i)->bdaddr, addr);
-			memset(name, 0, sizeof(name));
-			if (hci_read_remote_name(sock, &(ii+i)->bdaddr, sizeof(name), name, 0) < 0)  strncpy(name, "[unknown]", sizeof(name) -1);
-			cout << "Found a device at address: " << addr << " and name: " << name << endl;
-		}
-	}
-	/* if bt_address is NOT empty, query address for name, and copy it to name_str */
-	else {
-		str2ba(bt_address.c_str(), &dst_addr );
-    	if(hci_read_remote_name(sock, &dst_addr, sizeof(name), name, 0) < 0) {  
-			*name_str = "[unknown]";
-		}
-		else {
-			*name_str = name;
-		}
-	}
+        num_rsp = hci_inquiry(dev_id, len, max_rsp, NULL, &ii, flags);
+        if( num_rsp < 0 ) {
+            if (g_debug > 0) cout << "Could not find a bluetooth hosts on the network " << endl;
+            close( sock );
+            return false;
+        }
 
-	free( ii );
-	close( sock );
-	return true;
+        for (int i = 0; i < num_rsp; i++) {
+            memset(addr, 0, sizeof(addr));
+            ba2str(&(ii+i)->bdaddr, addr);
+            memset(name, 0, sizeof(name));
+            if (hci_read_remote_name(sock, &(ii+i)->bdaddr, sizeof(name), name, 0) < 0)  strncpy(name, "[unknown]", sizeof(name) -1);
+            cout << "Found a device at address: " << addr << " and name: " << name << endl;
+        }
+    }
+    /* if bt_address is NOT empty, query address for name, and copy it to name_str */
+    else {
+        str2ba(bt_address.c_str(), &dst_addr );
+        if(hci_read_remote_name(sock, &dst_addr, sizeof(name), name, 0) < 0) {
+            *name_str = "[unknown]";
+        }
+        else {
+            *name_str = name;
+        }
+    }
+
+    free( ii );
+    close( sock );
+    return true;
 }
 
 /* Get the SMA serial number out of the device name */
-string get_serial(string device_name) 
+string get_serial(string device_name)
 {
-	string serial = "";
+    string serial = "";
 
-	/* Look for the character 'SN' */
-	size_t found = device_name.rfind("SN");
-	if (found != string::npos) {
-		/* advance two positions */
-		found++; found++;
-		serial = device_name.substr(found, string::npos);
-	}
+    /* Look for the character 'SN' */
+    size_t found = device_name.rfind("SN");
+    if (found != string::npos) {
+        /* advance two positions */
+        found++; found++;
+        serial = device_name.substr(found, string::npos);
+    }
 
-	return serial;
+    return serial;
 }
-
-
