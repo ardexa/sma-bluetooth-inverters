@@ -1,5 +1,3 @@
-
-
 # Purpose
 The purpose of this project is to collect from SMA Bluetooth enabled Inverters and send the data to your cloud using Ardexa. Data from SMA solar inverters is read using a bluetooth connection and a Linux device such as a Raspberry Pi, or an X86 intel powered computer. 
 
@@ -12,10 +10,13 @@ d.	https://github.com/simonswine/opensunny
 
 This application will query any number of connected SMA bluetooth inverters. Data will be written to log files on disk in a directory specified via the command line. Usage and command line parameters are as follows.
 
-Usage: sudo ardexa-sma-bt -c conf file path [-p password -l log directory] [-d] [-v] [-i]
+```
+Usage: sudo ardexa-sma-bt -b mac_addr file_path [-p password -l log directory] [-d] [-v] [-i]
+```
+
 ```
 -l (optional) <directory> name for the location of the directory in which the logs will be written.  Defaults to: "/opt/ardexa/sma-bt/logs/"
--c (mandatory) <file path> fullpath of the SMA file (containing the address list of all bluetooth inverters)
+-b (mandatory) <mac addr> mac address of the target inverter
 -d (optional) if specified, debug will be turned on
 -i (optional) discovery. Print a listing of all available SMA Bluetooth inverters and exit.
 -v (optional) prints the version and exit.
@@ -43,13 +44,15 @@ sudo apt-get update
 sudo apt-get install -y libbluetooth-dev
 cd
 git clone https://github.com/ardexa/sma-bluetooth-inverters.git
-cd sma-bluetooth-inverters
+cd sma-bluetooth-inverters/src
 mkdir build
 cd build
 cmake ..
 make
-sudo make install  ... will install the `ardexa-sma-bt` binary in /usr/local/bin
+sudo make install
 ```
+
+This will install the `ardexa-sma-bt` binary in /usr/local/bin
 
 ## Collecting to the Ardexa cloud
 Collecting to the Ardexa cloud is free for up to 3 Raspberry Pis (or equivalent). Ardexa provides free agents for ARM, Intel x86 and MIPS based processors. To collect the data to the Ardexa cloud do the following:    
