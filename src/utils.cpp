@@ -109,7 +109,7 @@ string get_current_date()
     return date;
 }
 
-/* Returns the current time as a string, in the format "2017-01-30T15:30:45" */
+/* Returns the current time as a string, in the format "2017-01-30T15:30:45+0100" */
 string get_current_datetime()
 {
     time_t rawtime;
@@ -120,7 +120,7 @@ string get_current_datetime()
     timeinfo = localtime(&rawtime);
 
     /* This includes the time zone at the end of the time */
-    strftime(buffer, DATESIZE, "%H:%M:%S", timeinfo);
+    strftime(buffer, DATESIZE, "%H:%M:%S%z", timeinfo);
 
     string time(buffer);
 
